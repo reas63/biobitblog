@@ -222,7 +222,7 @@
                 <option value="Entretenimento">Entretenimento</option>
             </select>
             
-            <label class="file-label">Selecionar Foto ou Mídia (Imagem / Vídeo):</label>
+            <label class="file-label">Selecionar Foto ou Mídia (Opcional):</label>
             <input type="file" id="post-media-file" accept="image/*,video/*">
 
             <textarea id="post-body" rows="6" placeholder="Escreva o texto do artigo de forma limpa..."></textarea>
@@ -231,7 +231,7 @@
         </div>
 
         <div id="posts-container">
-            <div class="no-posts">A carregar artigos da nuvem...</div>
+            <div class="no-posts">A carregar artigos em tempo real...</div>
         </div>
     </div>
 
@@ -249,7 +249,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
@@ -339,14 +339,21 @@
 
             try {
                 btnPublish.disabled = true;
-                btnPublish.textContent = "A publicar na nuvem...";
+                btnPublish.textContent = "A publicar...";
 
                 let mediaUrl = "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800";
                 let mediaType = "image";
 
                 if (mediaFile) {
+                    // Timeout de 15 segundos para o upload para evitar travamentos
                     const storageRef = ref(storage, 'posts/' + Date.now() + '_' + mediaFile.name);
-                    const snapshot = await uploadBytes(storageRef, mediaFile);
+                    const uploadPromise = uploadBytes(storageRef, mediaFile);
+                    
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error("O upload demorou muito tempo. Verifique se o Firebase Storage está ativado nas regras do projeto.")), 15000)
+                    );
+
+                    const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
                     mediaUrl = await getDownloadURL(snapshot.ref);
                     
                     if (mediaFile.type.startsWith('video/')) {
@@ -363,12 +370,11 @@
                     createdAt: serverTimestamp()
                 });
                 
-                alert("Artigo publicado com sucesso!");
                 document.getElementById("post-title").value = "";
                 document.getElementById("post-body").value = "";
                 document.getElementById("post-media-file").value = "";
                 adminPanel.style.display = "none";
-                loadPosts();
+                alert("Publicado com sucesso!");
             } catch (err) {
                 console.error(err);
                 alert("Erro ao publicar: " + err.message);
@@ -378,12 +384,10 @@
             }
         });
 
-        async function loadPosts() {
-            postsContainer.innerHTML = '<div class="no-posts">A carregar artigos...</div>';
-            try {
-                const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(q);
-                
+        // Feed em Tempo Real (Atualização Instantânea)
+        function listenToPosts() {
+            const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+            onSnapshot(q, (querySnapshot) => {
                 if(querySnapshot.empty) {
                     postsContainer.innerHTML = '<div class="no-posts">Ainda não existem artigos publicados. O blog está limpo e pronto para receber o seu conteúdo!</div>';
                     return;
@@ -406,7 +410,7 @@
                         <div class="post-content">
                             <div class="post-meta">
                                 <span class="post-category">${p.category || 'Geral'}</span>
-                                <span class="post-date">Novo</span>
+                                <span class="post-date">Em direto</span>
                             </div>
                             <h2>${p.title}</h2>
                             <p>${p.body.replace(/\n/g, '<br>')}</p>
@@ -414,13 +418,13 @@
                     `;
                     postsContainer.appendChild(card);
                 });
-            } catch (err) {
-                console.error(err);
-                postsContainer.innerHTML = '<div class="no-posts">Erro ao carregar os artigos da base de dados.</div>';
-            }
+            }, (error) => {
+                console.error(error);
+                postsContainer.innerHTML = '<div class="no-posts">Erro ao sincronizar os artigos em tempo real.</div>';
+            });
         }
 
-        loadPosts();
+        listenToPosts();
     </script>
 </body>
 </html>
