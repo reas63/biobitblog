@@ -354,7 +354,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -371,6 +371,9 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Ativar persistência local para manter o admin logado
+        setPersistence(auth, browserLocalPersistence).catch((err) => console.error(err));
+
         const postsContainer = document.getElementById("posts-container");
         const adminPanel = document.getElementById("admin-panel");
         const loginBox = document.getElementById("login-box");
@@ -381,11 +384,12 @@
         const searchInput = document.getElementById("search-input");
 
         let allPosts = [];
+        let isAdmin = false;
 
         btnToggleLogin.addEventListener("click", (e) => {
             e.preventDefault();
             loginError.style.display = "none";
-            if(auth.currentUser) {
+            if(isAdmin) {
                 adminPanel.style.display = adminPanel.style.display === "none" ? "block" : "none";
                 loginBox.style.display = "none";
             } else {
@@ -430,13 +434,15 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                isAdmin = true;
                 userStatus.textContent = `Olá, Admin (${user.email}) | `;
                 adminPanel.style.display = "block";
             } else {
+                isAdmin = false;
                 userStatus.textContent = "";
                 adminPanel.style.display = "none";
             }
-            renderPosts(allPosts);
+            filterAndRender();
         });
 
         window.deletePost = async function(postId) {
@@ -521,7 +527,7 @@
                 }
 
                 let deleteBtnHtml = "";
-                if (auth.currentUser) {
+                if (isAdmin) {
                     deleteBtnHtml = `<button onclick="window.deletePost('${p.id}')" class="btn-delete">🗑️ Apagar Artigo</button>`;
                 }
 
