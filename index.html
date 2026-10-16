@@ -41,11 +41,9 @@
         }
         .translate-container {
             margin-top: 1.2rem;
-            display: block;
+            display: inline-block;
             width: 100%;
             max-width: 320px;
-            margin-left: auto;
-            margin-right: auto;
         }
         .container {
             max-width: 800px;
@@ -170,17 +168,8 @@
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         
-        /* Correção total do layout do Google Translate para lista vertical nativa */
-        .goog-te-gadget {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 0 !important;
-            color: transparent !important;
-            width: 100% !important;
-        }
-        .goog-te-gadget span {
-            display: none !important;
-        }
-        .goog-te-combo {
+        /* Seletor nativo limpo e vertical */
+        .native-translate-select {
             width: 100% !important;
             padding: 0.75rem 1rem !important;
             border-radius: 8px !important;
@@ -194,7 +183,7 @@
             box-sizing: border-box !important;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        .goog-logo-link, .goog-te-banner-frame { display: none !important; }
+        .goog-te-banner-frame { display: none !important; }
         body { top: 0 !important; }
     </style>
 </head>
@@ -204,9 +193,65 @@
         <h1>BioBit Blog</h1>
         <p>Tecnologia, Inovação e Conteúdos Exclusivos</p>
         <div class="translate-container">
-            <div id="google_translate_element"></div>
+            <select id="language-switcher" class="native-translate-select" onchange="changeLanguage(this.value)">
+                <option value="pt">🌐 Selecionar Idioma / Language</option>
+                <option value="en">English (Inglês)</option>
+                <option value="es">Español (Espanhol)</option>
+                <option value="fr">Français (Francês)</option>
+                <option value="de">Deutsch (Alemão)</option>
+                <option value="it">Italiano (Italiano)</option>
+                <option value="zh-CN">中文 (Chinês)</option>
+                <option value="ja">日本語 (Japonês)</option>
+                <option value="ko">한국어 (Coreano)</option>
+                <option value="ru">Русский (Russo)</option>
+                <option value="ar">العربية (Árabe)</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="nl">Nederlands (Holandês)</option>
+                <option value="sv">Svenska (Sueco)</option>
+                <option value="pl">Polski (Polonês)</option>
+                <option value="tr">Türkçe (Turco)</option>
+                <option value="uk">Українська (Ucraniano)</option>
+                <option value="vi">Tiếng Việt (Vietnamita)</option>
+                <option value="th">ไทย (Tailandês)</option>
+                <option value="el">Ελληνικά (Grego)</option>
+                <option value="he">עברית (Hebraico)</option>
+                <option value="id">Bahasa Indonesia (Indonésio)</option>
+                <option value="ms">Bahasa Melayu (Malaio)</option>
+                <option value="tl">Filipino (Filipino)</option>
+                <option value="hu">Magyar (Húngaro)</option>
+                <option value="cs">Čeština (Tcheco)</option>
+                <option value="da">Dansk (Dinamarquês)</option>
+                <option value="fi">Suomi (Finlandês)</option>
+                <option value="no">Norsk (Norueguês)</option>
+                <option value="ro">Română (Romeno)</option>
+                <option value="bg">Български (Búlgaro)</option>
+                <option value="hr">Hrvatski (Croata)</option>
+                <option value="sr">Срpski (Sérvio)</option>
+                <option value="sk">Slovenčina (Eslovaco)</option>
+                <option value="sl">Slovenščina (Esloveno)</option>
+                <option value="lt">Lietuvių (Lituano)</option>
+                <option value="lv">Latviešu (Letão)</option>
+                <option value="et">Eesti (Estoniano)</option>
+                <option value="ca">Català (Catalão)</option>
+                <option value="af">Afrikaans (Africâner)</option>
+                <option value="sw">Kiswahili (Suaíli)</option>
+                <option value="fa">فارسی (Persa)</option>
+                <option value="ur">اردو (Urdu)</option>
+                <option value="bn">বাংলা (Bengali)</option>
+                <option value="ta">தமிழ் (Tâmil)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="mr">मराठी (Marata)</option>
+                <option value="gu">ગુજરાતી (Guzerate)</option>
+                <option value="ml">മലയാളം (Malaiala)</option>
+                <option value="kn">ಕನ್ನಡ (Canarim)</option>
+                <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                <option value="ne">नेपाली (Nepalês)</option>
+                <option value="si">සිංහල (Cingalês)</option>
+            </select>
         </div>
     </header>
+
+    <div id="google_translate_element" style="display:none;"></div>
 
     <div class="container">
         <div class="login-trigger">
@@ -259,10 +304,28 @@
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({
                 pageLanguage: 'pt',
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
                 autoDisplay: false
             }, 'google_translate_element');
         }
+
+        function changeLanguage(lang) {
+            if (!lang) return;
+            document.cookie = "googtrans=/pt/" + lang + "; path=/";
+            document.cookie = "googtrans=/pt/" + lang + "; domain=" + document.domain + "; path=/";
+            window.location.reload();
+        }
+
+        // Marcar o idioma selecionado no carregamento se houver cookie
+        window.addEventListener('DOMContentLoaded', () => {
+            const match = document.cookie.match(new RegExp('(^| )googtrans=([^;]+)'));
+            if (match) {
+                const parts = match[2].split('/');
+                if (parts.length >= 3 && parts[2]) {
+                    const select = document.getElementById('language-switcher');
+                    if (select) select.value = parts[2];
+                }
+            }
+        });
     </script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
