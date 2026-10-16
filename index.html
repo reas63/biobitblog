@@ -116,6 +116,7 @@
         button:hover { opacity: 0.9; }
         .btn-logout { background: #ef4444; color: #fff; margin-left: 0.5rem; }
         .btn-back { background: #64748b; color: #fff; width: 100%; margin-top: 0.5rem; }
+        .btn-delete { background: #ef4444; color: #fff; padding: 0.5rem 1rem; font-size: 0.85rem; margin-top: 1rem; border-radius: 6px; }
         .login-trigger {
             text-align: right;
             margin-bottom: 1rem;
@@ -354,7 +355,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCfQRBch32awSshqbZybtA_6ymrMR_6-9E",
@@ -435,7 +436,20 @@
                 userStatus.textContent = "";
                 adminPanel.style.display = "none";
             }
+            renderPosts(allPosts);
         });
+
+        window.deletePost = async function(postId) {
+            if (confirm("Tem certeza de que deseja apagar este artigo permanentemente?")) {
+                try {
+                    await deleteDoc(doc(db, "posts", postId));
+                    alert("Artigo apagado com sucesso!");
+                } catch (err) {
+                    console.error(err);
+                    alert("Erro ao apagar: " + err.message);
+                }
+            }
+        };
 
         btnPublish.addEventListener("click", async () => {
             const title = document.getElementById("post-title").value.trim();
@@ -506,6 +520,11 @@
                     mediaElement = `<video controls><source src="${mediaSrc}">O seu browser não suporta vídeo.</video>`;
                 }
 
+                let deleteBtnHtml = "";
+                if (auth.currentUser) {
+                    deleteBtnHtml = `<button onclick="window.deletePost('${p.id}')" class="btn-delete">🗑️ Apagar Artigo</button>`;
+                }
+
                 const card = document.createElement("div");
                 card.className = "post-card";
                 card.innerHTML = `
@@ -517,6 +536,7 @@
                         </div>
                         <h2>${p.title}</h2>
                         <p>${p.body.replace(/\n/g, '<br>')}</p>
+                        ${deleteBtnHtml}
                     </div>
                 `;
                 postsContainer.appendChild(card);
