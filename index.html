@@ -39,6 +39,10 @@
             color: var(--text-muted);
             margin-top: 0.5rem;
         }
+        .translate-container {
+            margin-top: 1rem;
+            display: inline-block;
+        }
         .container {
             max-width: 800px;
             margin: 2rem auto;
@@ -138,6 +142,20 @@
             border: 1px solid var(--border);
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
+        
+        /* Ajustes visuais do Google Translate para combinar com o tema */
+        .goog-te-combo {
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .goog-logo-link, .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
     </style>
 </head>
 <body>
@@ -145,6 +163,10 @@
     <header>
         <h1>BioBit Blog</h1>
         <p>Tecnologia, Inovação e Conteúdos Exclusivos</p>
+        <!-- Tradutor Global para Todos os Idiomas -->
+        <div class="translate-container">
+            <div id="google_translate_element"></div>
+        </div>
     </header>
 
     <div class="container">
@@ -189,6 +211,18 @@
             <div class="no-posts">A carregar artigos da nuvem...</div>
         </div>
     </div>
+
+    <!-- Script do Google Translate para Todos os Idiomas -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'pt',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
