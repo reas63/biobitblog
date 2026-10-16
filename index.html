@@ -183,10 +183,9 @@
         </div>
 
         <div id="login-box" style="display:none; background:var(--card-bg); padding:1.5rem; border-radius:12px; border:1px solid var(--border); margin-bottom:2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-            <h3>Login de Administrador</h3>
+            <h3>Login de Administrador (reas63@hotmail.com)</h3>
             <div id="login-error" class="error-msg"></div>
-            <input type="email" id="admin-email" placeholder="E-mail (reas63@hotmail.com)">
-            <input type="password" id="admin-pass" placeholder="Palavra-passe">
+            <input type="password" id="admin-pass" placeholder="Insira a sua palavra-passe">
             <button id="btn-login-action">Entrar</button>
         </div>
 
@@ -270,12 +269,12 @@
         });
 
         document.getElementById("btn-login-action").addEventListener("click", async () => {
-            const email = document.getElementById("admin-email").value.trim();
+            const email = "reas63@hotmail.com"; // E-mail fixo do administrador
             const pass = document.getElementById("admin-pass").value.trim();
             loginError.style.display = "none";
 
-            if(!email || !pass) {
-                loginError.textContent = "Por favor, preencha o e-mail e a palavra-passe.";
+            if(!pass) {
+                loginError.textContent = "Por favor, insira a palavra-passe.";
                 loginError.style.display = "block";
                 return;
             }
@@ -283,7 +282,6 @@
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
                 loginBox.style.display = "none";
-                document.getElementById("admin-email").value = "";
                 document.getElementById("admin-pass").value = "";
                 alert("Login efetuado com sucesso!");
             } catch (err) {
