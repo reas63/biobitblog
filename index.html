@@ -21,6 +21,9 @@
             margin: 0;
             padding: 0;
             line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
         header {
             background: linear-gradient(135deg, #ffffff, #f1f5f9);
@@ -49,6 +52,9 @@
             max-width: 800px;
             margin: 2rem auto;
             padding: 0 1rem;
+            flex: 1;
+            width: 100%;
+            box-sizing: border-box;
         }
         .search-box {
             margin-bottom: 1.5rem;
@@ -116,7 +122,9 @@
         button:hover { opacity: 0.9; }
         .btn-logout { background: #ef4444; color: #fff; margin-left: 0.5rem; }
         .btn-back { background: #64748b; color: #fff; width: 100%; margin-top: 0.5rem; }
-        .btn-delete { background: #ef4444; color: #fff; padding: 0.5rem 1rem; font-size: 0.85rem; margin-top: 1rem; border-radius: 6px; }
+        .btn-action-group { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+        .btn-edit { background: #eab308; color: #fff; padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 6px; }
+        .btn-delete { background: #ef4444; color: #fff; padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 6px; }
         .login-trigger {
             text-align: right;
             margin-bottom: 1rem;
@@ -187,6 +195,53 @@
             border-radius: 12px;
             border: 1px solid var(--border);
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        /* Footer & Cards */
+        footer {
+            background: #f1f5f9;
+            border-top: 1px solid var(--border);
+            padding: 3rem 1rem 2rem 1rem;
+            margin-top: 4px;
+        }
+        .footer-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        @media(max-width: 600px) {
+            .footer-container { grid-template-columns: 1fr; }
+        }
+        .footer-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .footer-card h4 {
+            margin-top: 0;
+            color: var(--accent);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .footer-card p, .footer-card ul {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0;
+            padding-left: 1.2rem;
+            line-height: 1.5;
+        }
+        .footer-bottom {
+            max-width: 800px;
+            margin: 2rem auto 0 auto;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
         }
         
         .native-translate-select {
@@ -291,7 +346,7 @@
         </div>
 
         <div id="admin-panel">
-            <h3>✨ Criar Novo Artigo</h3>
+            <h3 id="admin-panel-title">✨ Criar Novo Artigo</h3>
             <input type="text" id="post-title" placeholder="Título do Artigo">
             <select id="post-category">
                 <option value="Tecnologia e Inovação">Tecnologia e Inovação</option>
@@ -310,7 +365,7 @@
                 <option value="Entretenimento">Entretenimento</option>
             </select>
             
-            <label class="file-label">Selecionar Ficheiro do Armazenamento:</label>
+            <label class="file-label" id="file-label-text">Selecionar Ficheiro do Armazenamento (Opcional na edição):</label>
             <input type="file" id="post-media-file">
 
             <textarea id="post-body" rows="6" placeholder="Escreva o texto do artigo de forma limpa..."></textarea>
@@ -323,6 +378,23 @@
             <div class="no-posts">A carregar artigos em tempo real...</div>
         </div>
     </div>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-card">
+                <h4>📜 Termos de Uso e Privacidade</h4>
+                <p>O BioBit Blog respeita a sua privacidade. Recolhemos dados estatísticos anónimos e utilizamos cookies para otimizar a experiência do utilizador e exibir anúncios relevantes através de parceiros certificados (Google AdSense). Ao utilizar o nosso site, concorda com estes termos.</p>
+            </div>
+            <div class="footer-card">
+                <h4>📬 Contacto</h4>
+                <p>Tem alguma dúvida, sugestão ou questão legal? Entre em contacto direto connosco através do email:</p>
+                <p style="margin-top: 0.5rem;"><strong style="color: var(--text-color);">📧 reas63@hotmail.com</strong></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2026 BioBit Blog (biobit.online). Todos os direitos reservados.
+        </div>
+    </footer>
 
     <script type="text/javascript">
         function googleTranslateElementInit() {
@@ -355,7 +427,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, updateDoc, doc, query, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCfQRBch32awSshqbZybtA_6ymrMR_6-9E",
@@ -371,11 +443,11 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Ativar persistência local para manter o admin logado
         setPersistence(auth, browserLocalPersistence).catch((err) => console.error(err));
 
         const postsContainer = document.getElementById("posts-container");
         const adminPanel = document.getElementById("admin-panel");
+        const adminPanelTitle = document.getElementById("admin-panel-title");
         const loginBox = document.getElementById("login-box");
         const btnToggleLogin = document.getElementById("btn-toggle-login");
         const userStatus = document.getElementById("user-status");
@@ -385,6 +457,7 @@
 
         let allPosts = [];
         let isAdmin = false;
+        let editingPostId = null; // Guarda o ID se estivermos a editar
 
         btnToggleLogin.addEventListener("click", (e) => {
             e.preventDefault();
@@ -399,6 +472,7 @@
         });
 
         document.getElementById("btn-back-site").addEventListener("click", () => {
+            resetAdminForm();
             adminPanel.style.display = "none";
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
@@ -428,6 +502,7 @@
 
         document.getElementById("btn-logout").addEventListener("click", async () => {
             await signOut(auth);
+            resetAdminForm();
             adminPanel.style.display = "none";
             alert("Sessão terminada.");
         });
@@ -444,6 +519,33 @@
             }
             filterAndRender();
         });
+
+        function resetAdminForm() {
+            editingPostId = null;
+            document.getElementById("post-title").value = "";
+            document.getElementById("post-body").value = "";
+            document.getElementById("post-media-file").value = "";
+            document.getElementById("post-category").selectedIndex = 0;
+            adminPanelTitle.textContent = "✨ Criar Novo Artigo";
+            btnPublish.textContent = "Publicar Artigo";
+        }
+
+        window.editPost = function(postId) {
+            const post = allPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            editingPostId = postId;
+            document.getElementById("post-title").value = post.title || "";
+            document.getElementById("post-body").value = post.body || "";
+            document.getElementById("post-category").value = post.category || "Tecnologia e Inovação";
+            document.getElementById("post-media-file").value = "";
+            
+            adminPanelTitle.textContent = "✏️ Editar Artigo Existente";
+            btnPublish.textContent = "Guardar Alterações";
+            
+            adminPanel.style.display = "block";
+            window.scrollTo({ top: adminPanel.offsetTop - 50, behavior: 'smooth' });
+        };
 
         window.deletePost = async function(postId) {
             if (confirm("Tem certeza de que deseja apagar este artigo permanentemente?")) {
@@ -470,10 +572,10 @@
 
             try {
                 btnPublish.disabled = true;
-                btnPublish.textContent = "A publicar...";
+                btnPublish.textContent = editingPostId ? "A guardar alterações..." : "A publicar...";
 
-                let mediaUrl = "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800";
-                let mediaType = "image";
+                let mediaUrl = null;
+                let mediaType = null;
 
                 if (mediaFile) {
                     mediaUrl = await new Promise((resolve, reject) => {
@@ -485,29 +587,49 @@
 
                     if (mediaFile.type.startsWith('video/')) {
                         mediaType = "video";
+                    } else {
+                        mediaType = "image";
                     }
                 }
 
-                await addDoc(collection(db, "posts"), {
-                    title: title,
-                    category: category,
-                    media: mediaUrl,
-                    mediaType: mediaType,
-                    body: body,
-                    createdAt: serverTimestamp()
-                });
+                if (editingPostId) {
+                    // Atualizar post existente
+                    const updateData = {
+                        title: title,
+                        category: category,
+                        body: body
+                    };
+                    if (mediaUrl) {
+                        updateData.media = mediaUrl;
+                        updateData.mediaType = mediaType;
+                    }
+
+                    await updateDoc(doc(db, "posts", editingPostId), updateData);
+                    alert("Artigo atualizado com sucesso!");
+                } else {
+                    // Criar novo post
+                    mediaUrl = mediaUrl || "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800";
+                    mediaType = mediaType || "image";
+
+                    await addDoc(collection(db, "posts"), {
+                        title: title,
+                        category: category,
+                        media: mediaUrl,
+                        mediaType: mediaType,
+                        body: body,
+                        createdAt: serverTimestamp()
+                    });
+                    alert("Publicado com sucesso!");
+                }
                 
-                document.getElementById("post-title").value = "";
-                document.getElementById("post-body").value = "";
-                document.getElementById("post-media-file").value = "";
+                resetAdminForm();
                 adminPanel.style.display = "none";
-                alert("Publicado com sucesso!");
             } catch (err) {
                 console.error(err);
-                alert("Erro ao publicar: " + err.message);
+                alert("Erro ao salvar: " + err.message);
             } finally {
                 btnPublish.disabled = false;
-                btnPublish.textContent = "Publicar Artigo";
+                btnPublish.textContent = editingPostId ? "Guardar Alterações" : "Publicar Artigo";
             }
         });
 
@@ -526,9 +648,14 @@
                     mediaElement = `<video controls><source src="${mediaSrc}">O seu browser não suporta vídeo.</video>`;
                 }
 
-                let deleteBtnHtml = "";
+                let adminButtonsHtml = "";
                 if (isAdmin) {
-                    deleteBtnHtml = `<button onclick="window.deletePost('${p.id}')" class="btn-delete">🗑️ Apagar Artigo</button>`;
+                    adminButtonsHtml = `
+                        <div class="btn-action-group">
+                            <button onclick="window.editPost('${p.id}')" class="btn-edit">✏️ Editar Artigo</button>
+                            <button onclick="window.deletePost('${p.id}')" class="btn-delete">🗑️ Apagar Artigo</button>
+                        </div>
+                    `;
                 }
 
                 const card = document.createElement("div");
@@ -542,7 +669,7 @@
                         </div>
                         <h2>${p.title}</h2>
                         <p>${p.body.replace(/\n/g, '<br>')}</p>
-                        ${deleteBtnHtml}
+                        ${adminButtonsHtml}
                     </div>
                 `;
                 postsContainer.appendChild(card);
@@ -577,6 +704,12 @@
                     return;
                 }
 
+                allPosts = [];
+                querySnapshot.forEach((docSnap) => {
+                    allPosts.push({ id: docSnap.id, docSnap.data() });
+                });
+
+                // Correção segura para mapear os dados do documento
                 allPosts = [];
                 querySnapshot.forEach((docSnap) => {
                     allPosts.push({ id: docSnap.id, ...docSnap.data() });
