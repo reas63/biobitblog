@@ -7,12 +7,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-color: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #38bdf8;
-            --border: #334155;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --accent: #0284c7;
+            --border: #e2e8f0;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -23,14 +23,15 @@
             line-height: 1.6;
         }
         header {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
+            background: linear-gradient(135deg, #ffffff, #f1f5f9);
             border-bottom: 1px solid var(--border);
-            padding: 2rem 1rem;
+            padding: 2.5rem 1rem;
             text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         header h1 {
             margin: 0;
-            font-size: 2.2rem;
+            font-size: 2.4rem;
             color: var(--accent);
             letter-spacing: -0.5px;
         }
@@ -43,7 +44,6 @@
             margin: 2rem auto;
             padding: 0 1rem;
         }
-        /* Admin Bar */
         #admin-panel {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -51,22 +51,23 @@
             padding: 1.5rem;
             margin-bottom: 2rem;
             display: none;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         #admin-panel h3 { margin-top: 0; color: var(--accent); }
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             padding: 0.75rem;
             margin-bottom: 1rem;
-            background: #0f172a;
+            background: #f8fafc;
             border: 1px solid var(--border);
             border-radius: 8px;
-            color: #fff;
+            color: var(--text-color);
             font-family: inherit;
             box-sizing: border-box;
         }
         button {
             background: var(--accent);
-            color: #0f172a;
+            color: #ffffff;
             border: none;
             padding: 0.75rem 1.5rem;
             font-weight: 600;
@@ -87,14 +88,13 @@
         }
         .login-trigger a:hover { color: var(--accent); }
 
-        /* Posts Feed */
         .post-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 12px;
             overflow: hidden;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         .post-card img {
             width: 100%;
@@ -108,12 +108,26 @@
         .post-content h2 {
             margin-top: 0;
             font-size: 1.5rem;
-            color: #fff;
+            color: var(--text-color);
+        }
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .post-category {
+            background: rgba(2, 132, 199, 0.1);
+            color: var(--accent);
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
         }
         .post-date {
             font-size: 0.85rem;
             color: var(--text-muted);
-            margin-bottom: 1rem;
         }
         .no-posts {
             text-align: center;
@@ -122,6 +136,7 @@
             background: var(--card-bg);
             border-radius: 12px;
             border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
     </style>
 </head>
@@ -133,37 +148,44 @@
     </header>
 
     <div class="container">
-        <!-- Trigger Login Admin -->
         <div class="login-trigger">
             <span id="user-status"></span>
             <a href="#" id="btn-toggle-login">🔑 Painel Admin</a>
         </div>
 
-        <!-- Caixa de Login (Oculta por defeito) -->
-        <div id="login-box" style="display:none; background:var(--card-bg); padding:1.5rem; border-radius:12px; border:1px solid var(--border); margin-bottom:2rem;">
+        <div id="login-box" style="display:none; background:var(--card-bg); padding:1.5rem; border-radius:12px; border:1px solid var(--border); margin-bottom:2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
             <h3>Login de Administrador</h3>
             <input type="email" id="admin-email" placeholder="E-mail (reas63@hotmail.com)">
             <input type="password" id="admin-pass" placeholder="Palavra-passe">
             <button id="btn-login-action">Entrar</button>
         </div>
 
-        <!-- Painel de Adicionar Post (Visível apenas para o Admin) -->
         <div id="admin-panel">
             <h3>✨ Criar Novo Artigo</h3>
             <input type="text" id="post-title" placeholder="Título do Artigo">
+            <select id="post-category">
+                <option value="Tecnologia">Tecnologia</option>
+                <option value="Tutoriais">Tutoriais</option>
+                <option value="Programação">Programação</option>
+                <option value="Linux & Termux">Linux & Termux</option>
+                <option value="Inteligência Artificial">Inteligência Artificial</option>
+                <option value="Dicas & Truques">Dicas & Truques</option>
+                <option value="Hardware">Hardware</option>
+                <option value="Segurança">Segurança</option>
+                <option value="Notícias">Notícias</option>
+                <option value="Geral">Geral</option>
+            </select>
             <input type="text" id="post-image" placeholder="URL da Imagem (ex: https://exemplo.com/foto.jpg)">
             <textarea id="post-body" rows="6" placeholder="Escreva o texto do artigo de forma limpa..."></textarea>
             <button id="btn-publish">Publicar Artigo</button>
             <button class="btn-logout" id="btn-logout">Sair</button>
         </div>
 
-        <!-- Lista de Posts -->
         <div id="posts-container">
             <div class="no-posts">A carregar artigos da nuvem...</div>
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -189,7 +211,6 @@
         const btnToggleLogin = document.getElementById("btn-toggle-login");
         const userStatus = document.getElementById("user-status");
 
-        // Toggle Login Box
         btnToggleLogin.addEventListener("click", (e) => {
             e.preventDefault();
             if(auth.currentUser) {
@@ -201,7 +222,6 @@
             }
         });
 
-        // Login Action
         document.getElementById("btn-login-action").addEventListener("click", async () => {
             const email = document.getElementById("admin-email").value;
             const pass = document.getElementById("admin-pass").value;
@@ -214,14 +234,12 @@
             }
         });
 
-        // Logout Action
         document.getElementById("btn-logout").addEventListener("click", async () => {
             await signOut(auth);
             adminPanel.style.display = "none";
             alert("Sessão terminada.");
         });
 
-        // Auth State Listener
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userStatus.textContent = `Olá, Admin (${user.email}) | `;
@@ -232,9 +250,9 @@
             }
         });
 
-        // Publish Post
         document.getElementById("btn-publish").addEventListener("click", async () => {
             const title = document.getElementById("post-title").value.trim();
+            const category = document.getElementById("post-category").value;
             const image = document.getElementById("post-image").value.trim();
             const body = document.getElementById("post-body").value.trim();
 
@@ -246,14 +264,15 @@
             try {
                 await addDoc(collection(db, "posts"), {
                     title: title,
+                    category: category,
                     image: image || "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800",
                     body: body,
                     createdAt: serverTimestamp()
                 });
                 alert("Artigo publicado com sucesso na nuvem!");
                 document.getElementById("post-title").value = "";
-                document.getElementById("post-image").value = "";
                 document.getElementById("post-body").value = "";
+                document.getElementById("post-image").value = "";
                 adminPanel.style.display = "none";
                 loadPosts();
             } catch (err) {
@@ -261,7 +280,6 @@
             }
         });
 
-        // Load Posts from Firestore
         async function loadPosts() {
             postsContainer.innerHTML = '<div class="no-posts">A carregar artigos...</div>';
             try {
@@ -269,7 +287,7 @@
                 const querySnapshot = await getDocs(q);
                 
                 if(querySnapshot.empty) {
-                    postsContainer.innerHTML = '<div class="no-posts">Ainda não existem artigos publicados. Faça login para criar o primeiro!</div>';
+                    postsContainer.innerHTML = '<div class="no-posts">Ainda não existem artigos publicados. O blog está limpo e pronto para receber o seu conteúdo!</div>';
                     return;
                 }
 
@@ -281,8 +299,11 @@
                     card.innerHTML = `
                         <img loading="lazy" src="${p.image}" alt="${p.title}">
                         <div class="post-content">
+                            <div class="post-meta">
+                                <span class="post-category">${p.category || 'Geral'}</span>
+                                <span class="post-date">Novo</span>
+                            </div>
                             <h2>${p.title}</h2>
-                            <div class="post-date">Publicado recentemente</div>
                             <p>${p.body.replace(/\n/g, '<br>')}</p>
                         </div>
                     `;
