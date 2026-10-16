@@ -50,6 +50,26 @@
             margin: 2rem auto;
             padding: 0 1rem;
         }
+        .search-box {
+            margin-bottom: 1.5rem;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-box input:focus {
+            border-color: var(--accent);
+        }
         #admin-panel {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -168,7 +188,6 @@
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         
-        /* Seletor nativo limpo e vertical */
         .native-translate-select {
             width: 100% !important;
             padding: 0.75rem 1rem !important;
@@ -259,6 +278,10 @@
             <a href="#" id="btn-toggle-login">🔑 Painel Admin</a>
         </div>
 
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="🔍 Pesquisar por título, palavra ou categoria...">
+        </div>
+
         <div id="login-box" style="display:none; background:var(--card-bg); padding:1.5rem; border-radius:12px; border:1px solid var(--border); margin-bottom:2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
             <h3>Login de Administrador (reas63@hotmail.com)</h3>
             <div id="login-error" class="error-msg"></div>
@@ -315,7 +338,6 @@
             window.location.reload();
         }
 
-        // Marcar o idioma selecionado no carregamento se houver cookie
         window.addEventListener('DOMContentLoaded', () => {
             const match = document.cookie.match(new RegExp('(^| )googtrans=([^;]+)'));
             if (match) {
@@ -355,6 +377,9 @@
         const userStatus = document.getElementById("user-status");
         const loginError = document.getElementById("login-error");
         const btnPublish = document.getElementById("btn-publish");
+        const searchInput = document.getElementById("search-input");
+
+        let allPosts = [];
 
         btnToggleLogin.addEventListener("click", (e) => {
             e.preventDefault();
@@ -466,49 +491,78 @@
             }
         });
 
+        function renderPosts(postsToRender) {
+            if(postsToRender.length === 0) {
+                postsContainer.innerHTML = '<div class="no-posts">Nenhum artigo encontrado com esses termos.</div>';
+                return;
+            }
+
+            postsContainer.innerHTML = "";
+            postsToRender.forEach((p) => {
+                const mediaSrc = p.media || p.image || "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800";
+                
+                let mediaElement = `<img loading="lazy" src="${mediaSrc}" alt="${p.title}">`;
+                if (p.mediaType === 'video') {
+                    mediaElement = `<video controls><source src="${mediaSrc}">O seu browser não suporta vídeo.</video>`;
+                }
+
+                const card = document.createElement("div");
+                card.className = "post-card";
+                card.innerHTML = `
+                    ${mediaElement}
+                    <div class="post-content">
+                        <div class="post-meta">
+                            <span class="post-category">${p.category || 'Geral'}</span>
+                            <span class="post-date">Em direto</span>
+                        </div>
+                        <h2>${p.title}</h2>
+                        <p>${p.body.replace(/\n/g, '<br>')}</p>
+                    </div>
+                `;
+                postsContainer.appendChild(card);
+            });
+        }
+
+        function filterAndRender() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            if(!searchTerm) {
+                renderPosts(allPosts);
+                return;
+            }
+
+            const filtered = allPosts.filter(p => {
+                const titleMatch = p.title && p.title.toLowerCase().includes(searchTerm);
+                const bodyMatch = p.body && p.body.toLowerCase().includes(searchTerm);
+                const categoryMatch = p.category && p.category.toLowerCase().includes(searchTerm);
+                return titleMatch || bodyMatch || categoryMatch;
+            });
+
+            renderPosts(filtered);
+        }
+
+        searchInput.addEventListener("input", filterAndRender);
+
         function listenToPosts() {
             const q = query(collection(db, "posts"));
             onSnapshot(q, (querySnapshot) => {
                 if(querySnapshot.empty) {
+                    allPosts = [];
                     postsContainer.innerHTML = '<div class="no-posts">Ainda não existem artigos publicados. O blog está limpo e pronto para receber o seu conteúdo!</div>';
                     return;
                 }
 
-                const posts = [];
+                allPosts = [];
                 querySnapshot.forEach((docSnap) => {
-                    posts.push({ id: docSnap.id, ...docSnap.data() });
+                    allPosts.push({ id: docSnap.id, ...docSnap.data() });
                 });
 
-                posts.sort((a, b) => {
+                allPosts.sort((a, b) => {
                     const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
                     const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
                     return timeB - timeA;
                 });
 
-                postsContainer.innerHTML = "";
-                posts.forEach((p) => {
-                    const mediaSrc = p.media || p.image || "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800";
-                    
-                    let mediaElement = `<img loading="lazy" src="${mediaSrc}" alt="${p.title}">`;
-                    if (p.mediaType === 'video') {
-                        mediaElement = `<video controls><source src="${mediaSrc}">O seu browser não suporta vídeo.</video>`;
-                    }
-
-                    const card = document.createElement("div");
-                    card.className = "post-card";
-                    card.innerHTML = `
-                        ${mediaElement}
-                        <div class="post-content">
-                            <div class="post-meta">
-                                <span class="post-category">${p.category || 'Geral'}</span>
-                                <span class="post-date">Em direto</span>
-                            </div>
-                            <h2>${p.title}</h2>
-                            <p>${p.body.replace(/\n/g, '<br>')}</p>
-                        </div>
-                    `;
-                    postsContainer.appendChild(card);
-                });
+                filterAndRender();
             }, (error) => {
                 console.error(error);
                 postsContainer.innerHTML = '<div class="no-posts">Erro ao sincronizar os artigos. Verifique as regras do Firestore.</div>';
