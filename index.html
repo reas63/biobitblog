@@ -69,6 +69,18 @@
             font-family: inherit;
             box-sizing: border-box;
         }
+        input[type="file"] {
+            padding: 0.5rem;
+            background: #ffffff;
+            cursor: pointer;
+        }
+        label.file-label {
+            display: block;
+            margin-bottom: 0.4rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
         button {
             background: var(--accent);
             color: #ffffff;
@@ -109,11 +121,12 @@
             margin-bottom: 2rem;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
-        .post-card img {
+        .post-card img, .post-card video {
             width: 100%;
-            height: 250px;
+            height: 280px;
             object-fit: cover;
             display: block;
+            background: #000;
         }
         .post-content {
             padding: 1.5rem;
@@ -208,7 +221,10 @@
                 <option value="Ecologia">Ecologia</option>
                 <option value="Entretenimento">Entretenimento</option>
             </select>
-            <input type="text" id="post-image" placeholder="URL da Imagem (ex: https://exemplo.com/foto.jpg)">
+            
+            <label class="file-label">Selecionar Foto ou Mídia (Imagem / Vídeo):</label>
+            <input type="file" id="post-media-file" accept="image/*,video/*">
+
             <textarea id="post-body" rows="6" placeholder="Escreva o texto do artigo de forma limpa..."></textarea>
             <button id="btn-publish">Publicar Artigo</button>
             <button class="btn-logout" id="btn-logout">Sair</button>
@@ -234,6 +250,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCfQRBch32awSshqbZybtA_6ymrMR_6-9E",
@@ -248,6 +265,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         const postsContainer = document.getElementById("posts-container");
         const adminPanel = document.getElementById("admin-panel");
@@ -269,7 +287,7 @@
         });
 
         document.getElementById("btn-login-action").addEventListener("click", async () => {
-            const email = "reas63@hotmail.com"; // E-mail fixo do administrador
+            const email = "reas63@hotmail.com";
             const pass = document.getElementById("admin-pass").value.trim();
             loginError.style.display = "none";
 
@@ -310,8 +328,8 @@
         document.getElementById("btn-publish").addEventListener("click", async () => {
             const title = document.getElementById("post-title").value.trim();
             const category = document.getElementById("post-category").value;
-            const image = document.getElementById("post-image").value.trim();
             const body = document.getElementById("post-body").value.trim();
+            const mediaFile = document.getElementById("post-media-file").files[0];
 
             if(!title || !body) {
                 alert("Por favor, preencha pelo menos o título e o texto.");
@@ -319,17 +337,33 @@
             }
 
             try {
+                let mediaUrl = "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800";
+                let mediaType = "image";
+
+                if (mediaFile) {
+                    alert("A enviar o ficheiro multimédia para a nuvem... Aguarde.");
+                    const storageRef = ref(storage, 'posts/' + Date.now() + '_' + mediaFile.name);
+                    const snapshot = await uploadBytes(storageRef, mediaFile);
+                    mediaUrl = await getDownloadURL(snapshot.ref);
+                    
+                    if (mediaFile.type.startsWith('video/')) {
+                        mediaType = "video";
+                    }
+                }
+
                 await addDoc(collection(db, "posts"), {
                     title: title,
                     category: category,
-                    image: image || "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800",
+                    media: mediaUrl,
+                    mediaType: mediaType,
                     body: body,
                     createdAt: serverTimestamp()
                 });
-                alert("Artigo publicado com sucesso na nuvem!");
+                
+                alert("Artigo e mídia publicados com sucesso na nuvem!");
                 document.getElementById("post-title").value = "";
                 document.getElementById("post-body").value = "";
-                document.getElementById("post-image").value = "";
+                document.getElementById("post-media-file").value = "";
                 adminPanel.style.display = "none";
                 loadPosts();
             } catch (err) {
@@ -351,10 +385,17 @@
                 postsContainer.innerHTML = "";
                 querySnapshot.forEach((docSnap) => {
                     const p = docSnap.data();
+                    const mediaSrc = p.media || p.image || "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800";
+                    
+                    let mediaElement = `<img loading="lazy" src="${mediaSrc}" alt="${p.title}">`;
+                    if (p.mediaType === 'video') {
+                        mediaElement = `<video controls><source src="${mediaSrc}">O seu browser não suporta vídeo.</video>`;
+                    }
+
                     const card = document.createElement("div");
                     card.className = "post-card";
                     card.innerHTML = `
-                        <img loading="lazy" src="${p.image}" alt="${p.title}">
+                        ${mediaElement}
                         <div class="post-content">
                             <div class="post-meta">
                                 <span class="post-category">${p.category || 'Geral'}</span>
