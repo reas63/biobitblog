@@ -25,23 +25,31 @@
         header {
             background: linear-gradient(135deg, #ffffff, #f1f5f9);
             border-bottom: 1px solid var(--border);
-            padding: 2.5rem 1rem;
+            padding: 1.5rem 1rem;
             text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         header h1 {
             margin: 0;
-            font-size: 2.4rem;
+            font-size: 2.2rem;
             color: var(--accent);
             letter-spacing: -0.5px;
         }
         header p {
             color: var(--text-muted);
-            margin-top: 0.5rem;
+            margin: 0.3rem 0 0.8rem 0;
+            font-size: 0.9rem;
         }
         .translate-container {
-            margin-top: 1rem;
             display: inline-block;
+            background: #ffffff;
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
         .container {
             max-width: 800px;
@@ -166,15 +174,17 @@
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         
+        /* Ajustes otimizados do Google Translate */
         .goog-te-combo {
-            padding: 0.5rem;
-            border-radius: 8px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
             border: 1px solid var(--border);
-            background: #ffffff;
+            background: #f8fafc;
             color: var(--text-color);
             font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             outline: none;
+            cursor: pointer;
         }
         .goog-logo-link, .goog-te-banner-frame { display: none !important; }
         body { top: 0 !important; }
@@ -385,7 +395,6 @@
             }
         });
 
-        // Sincronização em tempo real sem erros de índice
         function listenToPosts() {
             const q = query(collection(db, "posts"));
             onSnapshot(q, (querySnapshot) => {
@@ -399,7 +408,6 @@
                     posts.push({ id: docSnap.id, ...docSnap.data() });
                 });
 
-                // Ordenação por data no navegador (mais recente primeiro)
                 posts.sort((a, b) => {
                     const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
                     const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
@@ -436,7 +444,7 @@
             });
         }
 
-        listenToPosts();
+        ListenToPosts();
     </script>
 </body>
 </html>
