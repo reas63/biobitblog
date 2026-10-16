@@ -222,7 +222,7 @@
                 <option value="Entretenimento">Entretenimento</option>
             </select>
             
-            <label class="file-label">Selecionar Foto ou Mídia (Opcional):</label>
+            <label class="file-label">Selecionar Foto ou Mídia do Dispositivo:</label>
             <input type="file" id="post-media-file" accept="image/*,video/*">
 
             <textarea id="post-body" rows="6" placeholder="Escreva o texto do artigo de forma limpa..."></textarea>
@@ -250,7 +250,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCfQRBch32awSshqbZybtA_6ymrMR_6-9E",
@@ -265,7 +264,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
         const postsContainer = document.getElementById("posts-container");
         const adminPanel = document.getElementById("admin-panel");
@@ -339,23 +337,20 @@
 
             try {
                 btnPublish.disabled = true;
-                btnPublish.textContent = "A publicar...";
+                btnPublish.textContent = "A publicar instantaneamente...";
 
                 let mediaUrl = "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800";
                 let mediaType = "image";
 
                 if (mediaFile) {
-                    // Timeout de 15 segundos para o upload para evitar travamentos
-                    const storageRef = ref(storage, 'posts/' + Date.now() + '_' + mediaFile.name);
-                    const uploadPromise = uploadBytes(storageRef, mediaFile);
-                    
-                    const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error("O upload demorou muito tempo. Verifique se o Firebase Storage está ativado nas regras do projeto.")), 15000)
-                    );
+                    // Converter o ficheiro diretamente em dados locais do navegador (sem usar o Firebase Storage)
+                    mediaUrl = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.onerror = (err) => reject(err);
+                        reader.readAsDataURL(mediaFile);
+                    });
 
-                    const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
-                    mediaUrl = await getDownloadURL(snapshot.ref);
-                    
                     if (mediaFile.type.startsWith('video/')) {
                         mediaType = "video";
                     }
