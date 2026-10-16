@@ -273,6 +273,7 @@
         const btnToggleLogin = document.getElementById("btn-toggle-login");
         const userStatus = document.getElementById("user-status");
         const loginError = document.getElementById("login-error");
+        const btnPublish = document.getElementById("btn-publish");
 
         btnToggleLogin.addEventListener("click", (e) => {
             e.preventDefault();
@@ -325,7 +326,7 @@
             }
         });
 
-        document.getElementById("btn-publish").addEventListener("click", async () => {
+        btnPublish.addEventListener("click", async () => {
             const title = document.getElementById("post-title").value.trim();
             const category = document.getElementById("post-category").value;
             const body = document.getElementById("post-body").value.trim();
@@ -337,11 +338,13 @@
             }
 
             try {
+                btnPublish.disabled = true;
+                btnPublish.textContent = "A publicar na nuvem...";
+
                 let mediaUrl = "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800";
                 let mediaType = "image";
 
                 if (mediaFile) {
-                    alert("A enviar o ficheiro multimédia para a nuvem... Aguarde.");
                     const storageRef = ref(storage, 'posts/' + Date.now() + '_' + mediaFile.name);
                     const snapshot = await uploadBytes(storageRef, mediaFile);
                     mediaUrl = await getDownloadURL(snapshot.ref);
@@ -360,14 +363,18 @@
                     createdAt: serverTimestamp()
                 });
                 
-                alert("Artigo e mídia publicados com sucesso na nuvem!");
+                alert("Artigo publicado com sucesso!");
                 document.getElementById("post-title").value = "";
                 document.getElementById("post-body").value = "";
                 document.getElementById("post-media-file").value = "";
                 adminPanel.style.display = "none";
                 loadPosts();
             } catch (err) {
+                console.error(err);
                 alert("Erro ao publicar: " + err.message);
+            } finally {
+                btnPublish.disabled = false;
+                btnPublish.textContent = "Publicar Artigo";
             }
         });
 
