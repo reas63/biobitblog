@@ -91,6 +91,15 @@
             text-decoration: none;
         }
         .login-trigger a:hover { color: var(--accent); }
+        .error-msg {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
 
         .post-card {
             background: var(--card-bg);
@@ -143,7 +152,6 @@
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         
-        /* Ajustes visuais do Google Translate para combinar com o tema */
         .goog-te-combo {
             padding: 0.5rem;
             border-radius: 8px;
@@ -163,7 +171,6 @@
     <header>
         <h1>BioBit Blog</h1>
         <p>Tecnologia, Inovação e Conteúdos Exclusivos</p>
-        <!-- Tradutor Global para Todos os Idiomas -->
         <div class="translate-container">
             <div id="google_translate_element"></div>
         </div>
@@ -177,6 +184,7 @@
 
         <div id="login-box" style="display:none; background:var(--card-bg); padding:1.5rem; border-radius:12px; border:1px solid var(--border); margin-bottom:2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
             <h3>Login de Administrador</h3>
+            <div id="login-error" class="error-msg"></div>
             <input type="email" id="admin-email" placeholder="E-mail (reas63@hotmail.com)">
             <input type="password" id="admin-pass" placeholder="Palavra-passe">
             <button id="btn-login-action">Entrar</button>
@@ -212,7 +220,6 @@
         </div>
     </div>
 
-    <!-- Script do Google Translate para Todos os Idiomas -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({
@@ -248,9 +255,11 @@
         const loginBox = document.getElementById("login-box");
         const btnToggleLogin = document.getElementById("btn-toggle-login");
         const userStatus = document.getElementById("user-status");
+        const loginError = document.getElementById("login-error");
 
         btnToggleLogin.addEventListener("click", (e) => {
             e.preventDefault();
+            loginError.style.display = "none";
             if(auth.currentUser) {
                 adminPanel.style.display = adminPanel.style.display === "none" ? "block" : "none";
                 loginBox.style.display = "none";
@@ -261,14 +270,26 @@
         });
 
         document.getElementById("btn-login-action").addEventListener("click", async () => {
-            const email = document.getElementById("admin-email").value;
-            const pass = document.getElementById("admin-pass").value;
+            const email = document.getElementById("admin-email").value.trim();
+            const pass = document.getElementById("admin-pass").value.trim();
+            loginError.style.display = "none";
+
+            if(!email || !pass) {
+                loginError.textContent = "Por favor, preencha o e-mail e a palavra-passe.";
+                loginError.style.display = "block";
+                return;
+            }
+
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
                 loginBox.style.display = "none";
+                document.getElementById("admin-email").value = "";
+                document.getElementById("admin-pass").value = "";
                 alert("Login efetuado com sucesso!");
             } catch (err) {
-                alert("Erro ao entrar: " + err.message);
+                console.error(err);
+                loginError.textContent = "Erro ao entrar: " + err.message;
+                loginError.style.display = "block";
             }
         });
 
