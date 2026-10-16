@@ -222,8 +222,8 @@
                 <option value="Entretenimento">Entretenimento</option>
             </select>
             
-            <label class="file-label">Selecionar Foto ou Mídia do Dispositivo:</label>
-            <input type="file" id="post-media-file" accept="image/*,video/*">
+            <label class="file-label">Selecionar Ficheiro (Navegar por Pastas e Armazenamento):</label>
+            <input type="file" id="post-media-file">
 
             <textarea id="post-body" rows="6" placeholder="Escreva o texto do artigo de forma limpa..."></textarea>
             <button id="btn-publish">Publicar Artigo</button>
@@ -343,7 +343,6 @@
                 let mediaType = "image";
 
                 if (mediaFile) {
-                    // Converter o ficheiro diretamente em dados locais do navegador (sem usar o Firebase Storage)
                     mediaUrl = await new Promise((resolve, reject) => {
                         const reader = new FileReader();
                         reader.onload = (e) => resolve(e.target.result);
@@ -379,7 +378,6 @@
             }
         });
 
-        // Feed em Tempo Real (Atualização Instantânea)
         function listenToPosts() {
             const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
             onSnapshot(q, (querySnapshot) => {
